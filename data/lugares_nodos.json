@@ -1,0 +1,26 @@
+[
+  {
+    "nombre": "Centro Comercial Lima Plaza",
+    "lat": -12.045,
+    "lng": -77.03,
+    "tipo": "shopping_mall"
+  },
+  {
+    "nombre": "Mercado San Isidro",
+    "lat": -12.05,
+    "lng": -77.04,
+    "tipo": "grocery_or_supermarket"
+  },
+  {
+    "nombre": "Restaurante El Buen Sabor",
+    "lat": -12.055,
+    "lng": -77.035,
+    "tipo": "restaurant"
+  },
+  {
+    "nombre": "Farmacia Salcobrand",
+    "lat": -12.048,
+    "lng": -77.025,
+    "tipo": "pharmacy"
+  }
+]
