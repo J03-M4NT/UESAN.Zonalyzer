@@ -1,0 +1,12 @@
+[
+  {"nombre": "Centro Comercial Jockey Plaza", "lat": -12.1011, "lng": -76.9772},
+  {"nombre": "Centro Comercial Larcomar", "lat": -12.1292, "lng": -77.0296},
+  {"nombre": "Centro Comercial Plaza San Miguel", "lat": -12.0806, "lng": -77.0807},
+  {"nombre": "Centro Comercial Real Plaza Salaverry", "lat": -12.0891, "lng": -77.0496},
+  {"nombre": "Centro Comercial MegaPlaza", "lat": -11.9922, "lng": -77.0611},
+  {"nombre": "Centro Comercial Mall del Sur", "lat": -12.1817, "lng": -76.9722},
+  {"nombre": "Centro Comercial Open Plaza Angamos", "lat": -12.1112, "lng": -77.0123},
+  {"nombre": "Centro Comercial Caminos del Inca", "lat": -12.1275, "lng": -76.9912},
+  {"nombre": "Centro Comercial La Rambla", "lat": -12.0855, "lng": -77.0357},
+  {"nombre": "Centro Comercial Plaza Norte", "lat": -11.9911, "lng": -77.0625}
+]
