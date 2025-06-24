@@ -14,7 +14,7 @@
     ],
     "rewrites": [
       {
-        "source": "**",
+        "source": "!/@(ubicaciones_comerciales_lima_2025).json",
         "destination": "/index.html"
       }
     ]

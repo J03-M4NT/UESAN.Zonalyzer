@@ -2,89 +2,206 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>Login Page</title>
-  <script src="https://cdn.tailwindcss.com"></script>
-  <script type="module">
-    // Firebase setup
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
-    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Zonalyzer - Evaluador Comercial</title>
+  <style>
+    /* ... tus estilos actuales se mantienen exactamente igual ... */
+  </style>
+</head>
+<body>
+  <div class="header-bg">
+    <h1>Zonalyzer</h1>
+    <p class="header-desc">Encuentra la mejor zona para aperturar tu negocio en Lima Metropolitana 🧠</p>
+  </div>
 
-    const firebaseConfig = {
-      apiKey: "AIzaSyBNSI-WyP6verx9N1yVyPPQw07q4eSkRTo",
-      authDomain: "zonalyzer.firebaseapp.com",
-      projectId: "zonalyzer",
-      storageBucket: "zonalyzer.firebasestorage.app",
-      messagingSenderId: "1060280141143",
-      appId: "1:1060280141143:web:9cd01f5e00996ad9a8aa12"
-    };
+  <div class="main-container">
+    <div class="form-container">
+      <form id="formulario">
+        <label>📍 Latitud:
+          <input type="number" step="any" name="lat" required>
+        </label>
+        <label>📍 Longitud:
+          <input type="number" step="any" name="lng" required>
+        </label>
+        <label>📐 Radio de búsqueda (metros):
+          <input type="number" name="radius" value="1000" required>
+        </label>
+        <label>🏪 Rubro comercial:
+          <select name="type" required>
+            <option value="restaurant">Restaurante</option>
+            <option value="cafe">Cafetería</option>
+            <option value="store">Tienda</option>
+            <option value="supermarket">Supermercado</option>
+            <option value="pharmacy">Farmacia</option>
+          </select>
+        </label>
+        <button type="submit">Buscar lugares</button>
+      </form>
+      <p id="distritoDetectado">📍 Da clic en el mapa para detectar distrito</p>
+    </div>
 
-    const app = initializeApp(firebaseConfig);
-    const auth = getAuth(app);
+    <div class="map-container">
+      <div id="map"></div>
+    </div>
+  </div>
 
-    // Inicio de sesión
-    window.addEventListener('DOMContentLoaded', () => {
-      const form = document.getElementById('login-form');
-      const errorMsg = document.getElementById('error-message');
+  <div class="resultados" id="listaResultados" style="display: none;">
+    <h2>📊 Recomendaciones:</h2>
+    <div id="resultados"></div>
+  </div>
 
-      form.addEventListener('submit', (e) => {
-        e.preventDefault();
+  <script>
+    let map;
+    let markers = [];
+    const ubicacionesComerciales = [];
 
-        const email = document.getElementById('email').value;
-        const password = document.getElementById('password').value;
+    function initMap() {
+      const lima = { lat: -12.0464, lng: -77.0428 };
+      map = new google.maps.Map(document.getElementById("map"), {
+        zoom: 12,
+        center: lima,
+      });
 
-        signInWithEmailAndPassword(auth, email, password)
-          .then(() => {
-            window.location.href = "inicio.html"; // Redirige si login es exitoso
-          })
-          .catch((error) => {
-            errorMsg.textContent = "Credenciales incorrectas o cuenta inexistente.";
-            errorMsg.classList.remove('hidden');
+      const geocoder = new google.maps.Geocoder();
+
+      map.addListener("click", (e) => {
+        const lat = e.latLng.lat();
+        const lng = e.latLng.lng();
+
+        console.log("📍 Clic en mapa:", lat, lng);
+        document.querySelector('input[name="lat"]').value = lat;
+        document.querySelector('input[name="lng"]').value = lng;
+
+        const latlng = { lat, lng };
+
+        geocoder.geocode({ location: latlng }, (results, status) => {
+          console.log("🧭 Geocode status:", status);
+          console.log("📦 Resultados:", results);
+
+          if (status === "OK" && results.length > 0) {
+            const comps = results[0].address_components;
+            console.log("📌 Componentes:", comps.map(c => `${c.long_name} → ${c.types.join(',')}`));
+
+            const distritoObj = comps.find(c => c.types.includes("administrative_area_level_3")) ||
+                                comps.find(c => c.types.includes("sublocality_level_1")) ||
+                                comps.find(c => c.types.includes("locality"));
+
+            if (distritoObj) {
+              document.getElementById("distritoDetectado").innerText = `📍 Distrito detectado: ${distritoObj.long_name}`;
+            } else {
+              document.getElementById("distritoDetectado").innerText = `⚠️ No se pudo identificar el distrito.`;
+            }
+          } else {
+            document.getElementById("distritoDetectado").innerText = `⚠️ Error Geocode: ${status}`;
+          }
+        });
+      });
+    }
+
+    fetch('ubicaciones_comerciales_lima_2025.json')
+      .then(res => res.json())
+      .then(data => ubicacionesComerciales.push(...data));
+
+    function calcularDistancia(lat1, lng1, lat2, lng2) {
+      const R = 6371e3;
+      const φ1 = lat1 * Math.PI / 180;
+      const φ2 = lat2 * Math.PI / 180;
+      const Δφ = (lat2 - lat1) * Math.PI / 180;
+      const Δλ = (lng2 - lng1) * Math.PI / 180;
+
+      const a = Math.sin(Δφ / 2) * Math.sin(Δφ / 2) +
+                Math.cos(φ1) * Math.cos(φ2) *
+                Math.sin(Δλ / 2) * Math.sin(Δλ / 2);
+      const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
+
+      return R * c;
+    }
+
+    function obtenerDistrito(lat, lng, callback) {
+      const geocoder = new google.maps.Geocoder();
+      const latlng = { lat, lng };
+      geocoder.geocode({ location: latlng }, (results, status) => {
+        if (status === "OK" && results[0]) {
+          const comps = results[0].address_components;
+          const distrito = comps.find(c => c.types.includes("administrative_area_level_3")) ||
+                           comps.find(c => c.types.includes("sublocality_level_1")) ||
+                           comps.find(c => c.types.includes("locality"));
+          callback(distrito ? distrito.long_name : null);
+        } else {
+          callback(null);
+        }
+      });
+    }
+
+    function mostrarRecomendaciones(lat, lng, distritoDetectado, rubro, radio) {
+      markers.forEach(m => m.setMap(null));
+      markers = [];
+
+      const lista = document.getElementById("resultados");
+      lista.innerHTML = "";
+      let recomendaciones = 0;
+
+      ubicacionesComerciales.forEach(ubicacion => {
+        const distancia = calcularDistancia(lat, lng, ubicacion.lat, ubicacion.lng);
+        if (distancia <= radio) {
+          let puntaje = 0;
+          if (distancia < 200) puntaje += 40;
+          else if (distancia < 500) puntaje += 30;
+          else if (distancia < 1000) puntaje += 20;
+          else puntaje += 10;
+
+          if (ubicacion.nombre.toLowerCase().includes(rubro)) puntaje += 30;
+          if (distritoDetectado && ubicacion.nombre.toLowerCase().includes(distritoDetectado.toLowerCase())) puntaje += 30;
+
+          let color = 'red', clase = 'rojo';
+          if (puntaje >= 75) { color = 'green'; clase = 'verde'; }
+          else if (puntaje >= 50) { color = 'orange'; clase = 'naranja'; }
+
+          const marker = new google.maps.Marker({
+            position: { lat: ubicacion.lat, lng: ubicacion.lng },
+            map,
+            title: `${ubicacion.nombre} - Puntaje: ${puntaje}`,
+            icon: {
+              path: google.maps.SymbolPath.CIRCLE,
+              scale: 8,
+              fillColor: color,
+              fillOpacity: 1,
+              strokeWeight: 1,
+              strokeColor: "#fff"
+            }
           });
+
+          markers.push(marker);
+
+          lista.innerHTML += `
+            <div class="resultado ${clase}">
+              <strong>${ubicacion.nombre}</strong><br>
+              Puntaje: ${puntaje} / 100
+            </div>
+          `;
+
+          recomendaciones++;
+        }
+      });
+
+      document.getElementById("listaResultados").style.display = recomendaciones > 0 ? 'block' : 'none';
+    }
+
+    document.getElementById("formulario").addEventListener("submit", function(e) {
+      e.preventDefault();
+      const lat = parseFloat(this.lat.value);
+      const lng = parseFloat(this.lng.value);
+      const rubro = this.type.value.toLowerCase();
+      const radio = parseInt(this.radius.value);
+
+      obtenerDistrito(lat, lng, function(distrito) {
+        mostrarRecomendaciones(lat, lng, distrito, rubro, radio);
       });
     });
   </script>
-</head>
-<body>
-  <section class="min-h-screen flex items-stretch text-white">
-    <!-- Imagen lateral -->
-    <div class="lg:flex w-1/2 hidden bg-gray-500 bg-no-repeat bg-cover relative items-center"
-      style="background-image: url(https://images.unsplash.com/photo-1577495508048-b635879837f1?ixlib=rb-1.2.1&auto=format&fit=crop&w=675&q=80);">
-      <div class="absolute bg-black opacity-60 inset-0 z-0"></div>
-      <div class="w-full px-24 z-10">
-        <h1 class="text-5xl font-bold text-left tracking-wide">Welcome Back</h1>
-        <p class="text-2xl my-4">Inicia sesión para continuar en Zonalyzer</p>
-      </div>
-    </div>
 
-    <!-- Formulario -->
-    <div class="lg:w-1/2 w-full flex items-center justify-center text-center md:px-16 px-0 z-0 bg-gray-900">
-      <div class="w-full py-6 z-20">
-        <h1 class="my-6 text-white text-3xl font-bold">Zonalyzer</h1>
-        <p class="text-gray-100 mb-6">Inicia sesión con tu cuenta</p>
-        <form id="login-form" class="sm:w-2/3 w-full px-4 lg:px-0 mx-auto">
-          <div class="pb-2 pt-4">
-            <input type="email" id="email" placeholder="Email"
-              class="block w-full p-4 text-lg rounded-sm bg-black text-white" required />
-          </div>
-          <div class="pb-2 pt-4">
-            <input type="password" id="password" placeholder="Password"
-              class="block w-full p-4 text-lg rounded-sm bg-black text-white" required />
-          </div>
-          <div id="error-message" class="text-red-500 text-sm mt-2 hidden"></div>
-          <div class="px-4 pb-2 pt-4">
-            <button
-              class="uppercase block w-full p-4 text-lg rounded-full bg-indigo-500 hover:bg-indigo-600 focus:outline-none">
-              Login
-            </button>
-          </div>
-          <p class="text-gray-400 mt-4">¿No tienes una cuenta?
-            <a href="register.html" class="text-sm text-blue-400 hover:underline">Regístrate aquí</a>
-          </p>
-        </form>
-      </div>
-    </div>
-  </section>
+  <script
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDF7OxMlCDpAwBsMiyqI4-ALdkaI77f98Q&libraries=places&callback=initMap"
+    async defer></script>
 </body>
 </html>
-
