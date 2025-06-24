@@ -4,47 +4,166 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Zonalyzer - Evaluador Comercial</title>
-  <link rel="stylesheet" href="style.css" />
+  <style>
+    body {
+      margin: 0;
+      font-family: 'Segoe UI', sans-serif;
+      background-color: #1b2b48;
+      color: #fff;
+    }
+
+    .header-bg {
+      background-color: #26466d;
+      padding: 2rem;
+      text-align: center;
+      color: white;
+    }
+
+    .header-desc {
+      margin-top: 0.5rem;
+      font-size: 1.1rem;
+    }
+
+    .main-container {
+      display: flex;
+      max-width: 95%;
+      height: calc(100vh - 160px);
+      margin: 2rem auto;
+      gap: 2rem;
+      padding: 0 1rem;
+    }
+
+    .form-container {
+      flex: 1;
+      background-color: #ffffff;
+      color: #000;
+      padding: 2rem;
+      border-radius: 12px;
+      box-shadow: 0px 4px 15px rgba(0, 0, 0, 0.25);
+      min-width: 300px;
+      max-width: 400px;
+      height: 100%;
+      box-sizing: border-box;
+    }
+
+    .form-container form label {
+      display: block;
+      margin-bottom: 1rem;
+      font-weight: 500;
+    }
+
+    .form-container input[type="number"],
+    .form-container select {
+      padding: 0.5rem;
+      width: 100%;
+      border-radius: 6px;
+      border: 1px solid #ccc;
+      margin-top: 0.5rem;
+    }
+
+    .form-container button[type="submit"] {
+      background-color: #1d72b8;
+      color: white;
+      padding: 0.6rem 1.2rem;
+      border: none;
+      border-radius: 6px;
+      cursor: pointer;
+      font-size: 1rem;
+      margin-top: 1rem;
+    }
+
+    .form-container button:hover {
+      background-color: #145a96;
+    }
+
+    .map-container {
+      flex: 2;
+      height: 100%;
+      border-radius: 12px;
+      overflow: hidden;
+      border: 2px solid #fff;
+    }
+
+    #map {
+      width: 100%;
+      height: 100%;
+    }
+
+    #streetViewContainer {
+      display: none;
+      width: 100%;
+      margin-top: 2rem;
+    }
+
+    #streetView {
+      width: 100%;
+      height: 350px;
+      border-radius: 10px;
+    }
+
+    @media (max-width: 900px) {
+      .main-container {
+        flex-direction: column;
+        height: auto;
+      }
+      .map-container {
+        height: 400px;
+      }
+    }
+  </style>
 </head>
 <body>
   <div class="header-bg">
     <h1>Zonalyzer</h1>
-    <p class="header-desc">Encuentra la mejor zona para abrir tu negocio en Lima Metropolitana 🧠</p>
+    <p class="header-desc">Encuentra la mejor zona para aperturar tu negocio en Lima Metropolitana 🧠</p>
   </div>
-  <div class="main-content">
-    <form id="formulario">
-      <label>📍 Latitud:
-        <input type="number" step="any" name="lat" required>
-      </label><br>
-      <label>📍 Longitud:
-        <input type="number" step="any" name="lng" required>
-      </label><br>
-      <label>📐 Radio de búsqueda (metros):
-        <input type="number" name="radius" value="1000" required>
-      </label><br>
-      <label>🏪 Rubro comercial:
-        <select name="type" required>
-          <option value="restaurant">Restaurante</option>
-          <option value="cafe">Cafetería</option>
-          <option value="store">Tienda</option>
-          <option value="supermarket">Supermercado</option>
-          <option value="pharmacy">Farmacia</option>
-        </select>
-      </label><br>
-      <button type="submit">Buscar lugares</button>
-    </form>
-    <div id="map" style="width: 100%; height: 400px;"></div>
-    <div id="infoLugar" style="margin: 2em 0;"></div>
-    <div id="streetViewContainer" style="width: 100%; height: 400px; display: none;">
-      <h2>Vista de Calle</h2>
-      <div id="streetView" style="width: 100%; height: 350px;"></div>
-      <p id="descripcionLugar"></p>
+
+  <div class="main-container">
+    <!-- Formulario a la izquierda -->
+    <div class="form-container">
+      <form id="formulario">
+        <label>📍 Latitud:
+          <input type="number" step="any" name="lat" required>
+        </label>
+        <label>📍 Longitud:
+          <input type="number" step="any" name="lng" required>
+        </label>
+        <label>📐 Radio de búsqueda (metros):
+          <input type="number" name="radius" value="1000" required>
+        </label>
+        <label>🏪 Rubro comercial:
+          <select name="type" required>
+            <option value="restaurant">Restaurante</option>
+            <option value="cafe">Cafetería</option>
+            <option value="store">Tienda</option>
+            <option value="supermarket">Supermercado</option>
+            <option value="pharmacy">Farmacia</option>
+          </select>
+        </label>
+        <button type="submit">Buscar lugares</button>
+      </form>
+    </div>
+
+    <!-- Mapa a la derecha, ocupa todo -->
+    <div class="map-container">
+      <div id="map"></div>
     </div>
   </div>
 
+  <!-- Otros resultados abajo -->
+  <div style="max-width: 95%; margin: 0 auto; padding: 2rem;">
+    <div id="infoLugar"></div>
+
+    <div id="streetViewContainer">
+      <h2>Vista de Calle</h2>
+      <div id="streetView"></div>
+      <p id="descripcionLugar" style="color: #fff;"></p>
+    </div>
+  </div>
+
+  <!-- Scripts -->
   <script src="script.js"></script>
   <script>
-    // Cargar y mostrar checkboxes de ubicaciones comerciales
     fetch('/data/ubicaciones_comerciales_lima_2025.json')
       .then(res => res.json())
       .then(ubicaciones => {
@@ -54,14 +173,8 @@
         `).join('');
       });
   </script>
+  <script
+    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDF7OxMlCDpAwBsMiyqI4-ALdkaI77f98Q&libraries=places&callback=initMap"
+    async defer></script>
 </body>
-
-<!-- Script de Google Maps (al final del body) -->
-<script
-  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDF7OxMlCDpAwBsMiyqI4-ALdkaI77f98Q&libraries=places&callback=initMap"
-  async
-  defer
-></script>
-
 </html>
-
