@@ -1,0 +1,67 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>Zonalyzer - Evaluador Comercial</title>
+  <link rel="stylesheet" href="style.css" />
+</head>
+<body>
+  <div class="header-bg">
+    <h1>Zonalyzer</h1>
+    <p class="header-desc">Encuentra la mejor zona para abrir tu negocio en Lima Metropolitana 🧠</p>
+  </div>
+  <div class="main-content">
+    <form id="formulario">
+      <label>📍 Latitud:
+        <input type="number" step="any" name="lat" required>
+      </label><br>
+      <label>📍 Longitud:
+        <input type="number" step="any" name="lng" required>
+      </label><br>
+      <label>📐 Radio de búsqueda (metros):
+        <input type="number" name="radius" value="1000" required>
+      </label><br>
+      <label>🏪 Rubro comercial:
+        <select name="type" required>
+          <option value="restaurant">Restaurante</option>
+          <option value="cafe">Cafetería</option>
+          <option value="store">Tienda</option>
+          <option value="supermarket">Supermercado</option>
+          <option value="pharmacy">Farmacia</option>
+        </select>
+      </label><br>
+      <button type="submit">Buscar lugares</button>
+    </form>
+    <div id="map" style="width: 100%; height: 400px;"></div>
+    <div id="infoLugar" style="margin: 2em 0;"></div>
+    <div id="streetViewContainer" style="width: 100%; height: 400px; display: none;">
+      <h2>Vista de Calle</h2>
+      <div id="streetView" style="width: 100%; height: 350px;"></div>
+      <p id="descripcionLugar"></p>
+    </div>
+  </div>
+
+  <script src="script.js"></script>
+  <script>
+    // Cargar y mostrar checkboxes de ubicaciones comerciales
+    fetch('/data/ubicaciones_comerciales_lima_2025.json')
+      .then(res => res.json())
+      .then(ubicaciones => {
+        const cont = document.getElementById('ubicacionesComercialesSelector');
+        cont.innerHTML = ubicaciones.map(u => `
+          <label><input type="checkbox" name="ubicacionComercial" value="${u.nombre}"> ${u.nombre}</label><br>
+        `).join('');
+      });
+  </script>
+</body>
+
+<!-- Script de Google Maps (al final del body) -->
+<script
+  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDF7OxMlCDpAwBsMiyqI4-ALdkaI77f98Q&libraries=places&callback=initMap"
+  async
+  defer
+></script>
+
+</html>
+
