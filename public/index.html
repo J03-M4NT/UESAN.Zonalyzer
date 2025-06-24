@@ -2,65 +2,89 @@
 <html lang="es">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Zonalyzer - Evaluador Comercial</title>
-  <link rel="stylesheet" href="style.css" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Login Page</title>
+  <script src="https://cdn.tailwindcss.com"></script>
+  <script type="module">
+    // Firebase setup
+    import { initializeApp } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-app.js";
+    import { getAuth, signInWithEmailAndPassword } from "https://www.gstatic.com/firebasejs/10.12.2/firebase-auth.js";
+
+    const firebaseConfig = {
+      apiKey: "AIzaSyBNSI-WyP6verx9N1yVyPPQw07q4eSkRTo",
+      authDomain: "zonalyzer.firebaseapp.com",
+      projectId: "zonalyzer",
+      storageBucket: "zonalyzer.firebasestorage.app",
+      messagingSenderId: "1060280141143",
+      appId: "1:1060280141143:web:9cd01f5e00996ad9a8aa12"
+    };
+
+    const app = initializeApp(firebaseConfig);
+    const auth = getAuth(app);
+
+    // Inicio de sesión
+    window.addEventListener('DOMContentLoaded', () => {
+      const form = document.getElementById('login-form');
+      const errorMsg = document.getElementById('error-message');
+
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+
+        const email = document.getElementById('email').value;
+        const password = document.getElementById('password').value;
+
+        signInWithEmailAndPassword(auth, email, password)
+          .then(() => {
+            window.location.href = "inicio.html"; // Redirige si login es exitoso
+          })
+          .catch((error) => {
+            errorMsg.textContent = "Credenciales incorrectas o cuenta inexistente.";
+            errorMsg.classList.remove('hidden');
+          });
+      });
+    });
+  </script>
 </head>
 <body>
-  <div class="header-bg">
-    <h1>Zonalyzer</h1>
-    <p class="header-desc">Encuentra la mejor zona para abrir tu negocio en Lima Metropolitana 🧠</p>
-  </div>
-  <div class="main-content">
-    <form id="formulario">
-      <label>📍 Latitud:
-        <input type="number" step="any" name="lat" required>
-      </label><br>
-      <label>📍 Longitud:
-        <input type="number" step="any" name="lng" required>
-      </label><br>
-      <label>📐 Radio de búsqueda (metros):
-        <input type="number" name="radius" value="1000" required>
-      </label><br>
-      <label>🏪 Rubro comercial:
-        <select name="type" required>
-          <option value="restaurant">Restaurante</option>
-          <option value="cafe">Cafetería</option>
-          <option value="store">Tienda</option>
-          <option value="supermarket">Supermercado</option>
-          <option value="pharmacy">Farmacia</option>
-        </select>
-      </label><br>
-      <button type="submit">Buscar lugares</button>
-    </form>
-    <div id="map" style="width: 100%; height: 400px;"></div>
-    <div id="infoLugar" style="margin: 2em 0;"></div>
-    <div id="streetViewContainer" style="width: 100%; height: 400px; display: none;">
-      <h2>Vista de Calle</h2>
-      <div id="streetView" style="width: 100%; height: 350px;"></div>
-      <p id="descripcionLugar"></p>
+  <section class="min-h-screen flex items-stretch text-white">
+    <!-- Imagen lateral -->
+    <div class="lg:flex w-1/2 hidden bg-gray-500 bg-no-repeat bg-cover relative items-center"
+      style="background-image: url(https://images.unsplash.com/photo-1577495508048-b635879837f1?ixlib=rb-1.2.1&auto=format&fit=crop&w=675&q=80);">
+      <div class="absolute bg-black opacity-60 inset-0 z-0"></div>
+      <div class="w-full px-24 z-10">
+        <h1 class="text-5xl font-bold text-left tracking-wide">Welcome Back</h1>
+        <p class="text-2xl my-4">Inicia sesión para continuar en Zonalyzer</p>
+      </div>
     </div>
-  </div>
 
-  <script src="script.js"></script>
-  <script>
-    // Cargar y mostrar checkboxes de ubicaciones comerciales
-    fetch('/data/ubicaciones_comerciales_lima_2025.json')
-      .then(res => res.json())
-      .then(ubicaciones => {
-        const cont = document.getElementById('ubicacionesComercialesSelector');
-        cont.innerHTML = ubicaciones.map(u => `
-          <label><input type="checkbox" name="ubicacionComercial" value="${u.nombre}"> ${u.nombre}</label><br>
-        `).join('');
-      });
-  </script>
+    <!-- Formulario -->
+    <div class="lg:w-1/2 w-full flex items-center justify-center text-center md:px-16 px-0 z-0 bg-gray-900">
+      <div class="w-full py-6 z-20">
+        <h1 class="my-6 text-white text-3xl font-bold">Zonalyzer</h1>
+        <p class="text-gray-100 mb-6">Inicia sesión con tu cuenta</p>
+        <form id="login-form" class="sm:w-2/3 w-full px-4 lg:px-0 mx-auto">
+          <div class="pb-2 pt-4">
+            <input type="email" id="email" placeholder="Email"
+              class="block w-full p-4 text-lg rounded-sm bg-black text-white" required />
+          </div>
+          <div class="pb-2 pt-4">
+            <input type="password" id="password" placeholder="Password"
+              class="block w-full p-4 text-lg rounded-sm bg-black text-white" required />
+          </div>
+          <div id="error-message" class="text-red-500 text-sm mt-2 hidden"></div>
+          <div class="px-4 pb-2 pt-4">
+            <button
+              class="uppercase block w-full p-4 text-lg rounded-full bg-indigo-500 hover:bg-indigo-600 focus:outline-none">
+              Login
+            </button>
+          </div>
+          <p class="text-gray-400 mt-4">¿No tienes una cuenta?
+            <a href="register.html" class="text-sm text-blue-400 hover:underline">Regístrate aquí</a>
+          </p>
+        </form>
+      </div>
+    </div>
+  </section>
 </body>
-
-<!-- Script de Google Maps (al final del body) -->
-<script
-  src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDF7OxMlCDpAwBsMiyqI4-ALdkaI77f98Q&libraries=places&callback=initMap"
-  async
-  defer
-></script>
-
 </html>
+
