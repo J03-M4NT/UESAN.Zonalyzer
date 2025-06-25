@@ -1,11 +1,11 @@
 let map;
-
 let mapMarkers = [];
 let ubicacionesComerciales = [];
 
+// Cargar ubicaciones comerciales desde el JSON en /public
 async function cargarUbicacionesComerciales() {
   try {
-    const res = await fetch("/data/ubicaciones_comerciales_lima_2025.json");
+    const res = await fetch("/ubicaciones_comerciales_lima_2025.json");
     ubicacionesComerciales = await res.json();
     // Si el mapa ya está inicializado, mostrar los marcadores al cargar
     if (map) mostrarTodasUbicacionesComerciales();
@@ -55,23 +55,6 @@ function setLatLngInputs(lat, lng) {
   }
 }
 
-function filtrarUbicacionesPorRadio(lat, lng, radio) {
-  // radio en metros
-  function distanciaEnMetros(lat1, lng1, lat2, lng2) {
-    const R = 6371000; // Radio de la Tierra en metros
-    const dLat = (lat2 - lat1) * Math.PI / 180;
-    const dLng = (lng2 - lng1) * Math.PI / 180;
-    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-      Math.sin(dLng/2) * Math.sin(dLng/2);
-    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-    return R * c;
-  }
-  return ubicacionesComerciales.filter(u =>
-    distanciaEnMetros(lat, lng, u.lat, u.lng) <= radio
-  );
-}
-
 function filtrarUbicacionesPorRadioYRubro(lat, lng, radio, rubro) {
   function distanciaEnMetros(lat1, lng1, lat2, lng2) {
     const R = 6371000;
@@ -92,10 +75,19 @@ function filtrarUbicacionesPorRadioYRubro(lat, lng, radio, rubro) {
 function mostrarUbicacionesFiltradas(ubicaciones) {
   clearMapMarkers();
   const contenedorInfo = document.getElementById('infoLugar');
+  const mensajeDiv = document.getElementById('mensajeLugar');
   contenedorInfo.innerHTML = '';
+  if (mensajeDiv) mensajeDiv.innerHTML = '';
+
   const iconRedPin = {
     url: "http://maps.google.com/mapfiles/ms/icons/red-dot.png"
   };
+
+  if (ubicaciones.length === 0) {
+    if (mensajeDiv) mensajeDiv.innerHTML = `<span style="color:red">No se encontraron lugares para los filtros seleccionados.</span>`;
+    return;
+  }
+
   ubicaciones.forEach((ubicacion, idx) => {
     const marker = new google.maps.Marker({
       position: { lat: ubicacion.lat, lng: ubicacion.lng },
@@ -104,15 +96,12 @@ function mostrarUbicacionesFiltradas(ubicaciones) {
       icon: iconRedPin
     });
     mapMarkers.push(marker);
+
     if (idx === 0) {
-      // CENTRA EL MAPA EN EL PRIMER RESULTADO
       map.setCenter({ lat: ubicacion.lat, lng: ubicacion.lng });
-      // Muestra el mensaje debajo del botón de buscar lugares
-      const mensajeDiv = document.getElementById('mensajeLugar');
       if (mensajeDiv) {
         mensajeDiv.innerHTML = `<b>¿Por qué es un buen lugar?</b> Zona de alto tránsito, cerca de centros de interés y con potencial comercial para nuevos negocios en 2025.`;
       }
-      // Street View e info (opcional, si quieres mantenerlo abajo)
       contenedorInfo.innerHTML = `
         <h3>${ubicacion.nombre}</h3>
         <img id="streetview-img" src="https://maps.googleapis.com/maps/api/streetview?size=400x200&location=${ubicacion.lat},${ubicacion.lng}&key=AIzaSyDF7OxMlCDpAwBsMiyqI4-ALdkaI77f98Q" alt="Imagen del lugar" style="max-width:100%;border-radius:8px;"/>
