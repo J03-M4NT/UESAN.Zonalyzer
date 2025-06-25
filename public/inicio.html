@@ -4,6 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
   <title>Zonalyzer - Evaluador Comercial</title>
+  <link rel="stylesheet" href="style.css">
   <style>
     body {
       margin: 0;
@@ -122,11 +123,11 @@
     <!-- Formulario a la izquierda -->
     <div class="form-container">
       <form id="formulario">
-        <label>📍 Latitud:
-          <input type="number" step="any" name="lat" required>
+        <label style="color: #888;">📍 Latitud:
+          <input type="number" step="any" name="lat" id="latInput" readonly style="color: #888; background: #f2f2f2;" tabindex="-1">
         </label>
-        <label>📍 Longitud:
-          <input type="number" step="any" name="lng" required>
+        <label style="color: #888;">📍 Longitud:
+          <input type="number" step="any" name="lng" id="lngInput" readonly style="color: #888; background: #f2f2f2;" tabindex="-1">
         </label>
         <label>📐 Radio de búsqueda (metros):
           <input type="number" name="radius" value="1000" required>
@@ -142,6 +143,7 @@
         </label>
         <button type="submit">Buscar lugares</button>
       </form>
+      <div id="mensajeLugar" style="margin-top:1em;color:#145a96;"></div>
     </div>
 
     <!-- Mapa a la derecha, ocupa todo -->
@@ -163,16 +165,6 @@
 
   <!-- Scripts -->
   <script src="script.js"></script>
-  <script>
-    fetch('/data/ubicaciones_comerciales_lima_2025.json')
-      .then(res => res.json())
-      .then(ubicaciones => {
-        const cont = document.getElementById('ubicacionesComercialesSelector');
-        cont.innerHTML = ubicaciones.map(u => `
-          <label><input type="checkbox" name="ubicacionComercial" value="${u.nombre}"> ${u.nombre}</label><br>
-        `).join('');
-      });
-  </script>
   <script
     src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDF7OxMlCDpAwBsMiyqI4-ALdkaI77f98Q&libraries=places&callback=initMap"
     async defer></script>

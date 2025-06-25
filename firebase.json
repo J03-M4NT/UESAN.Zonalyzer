@@ -12,11 +12,17 @@
       "**/.*",
       "**/node_modules/**"
     ],
+    
     "rewrites": [
       {
-        "source": "!/@(ubicaciones_comerciales_lima_2025).json",
+        "source": "/ubicaciones_comerciales_lima_2025.json",
+        "destination": "/ubicaciones_comerciales_lima_2025.json"
+      },
+      {
+        "source": "**",
         "destination": "/index.html"
       }
     ]
+    
   }
 }
