@@ -129,9 +129,12 @@
         <label style="color: #888;">📍 Longitud:
           <input type="number" step="any" name="lng" id="lngInput" readonly style="color: #888; background: #f2f2f2;" tabindex="-1">
         </label>
-        <label>📐 Radio de búsqueda (metros):
-          <input type="number" name="radius" value="1000" required>
+        <label>📐 Radio de búsqueda (kilómetros):
+          <input type="number" name="radius" id="radiusInput" value="50" min="50" max="1000" step="1" readonly style="color: #888; background: #f2f2f2;" tabindex="-1">
         </label>
+        <div style="margin-bottom:1em;">
+          <input type="range" id="radiusSlider" min="50" max="1000" value="50" step="1" style="width:100%;">
+        </div>
         <label>🏪 Rubro comercial:
           <select name="type" required>
             <option value="restaurant">Restaurante</option>
@@ -153,6 +156,9 @@
     </div>
   </div>
 
+  <!-- Resumen de lugares cercanos -->
+  <div id="resumenLugares" style="max-width: 95%; margin: 0 auto; padding: 1rem; color: #145a96; font-weight: 500;"></div>
+
   <!-- Otros resultados abajo -->
   <div style="max-width: 95%; margin: 0 auto; padding: 2rem;">
     <div id="infoLugar"></div>
@@ -165,9 +171,13 @@
   </div>
 
   <!-- Scripts -->
+  <!-- Google Maps con librería visualization para heatmap nativo -->
+  <script src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDF7OxMlCDpAwBsMiyqI4-ALdkaI77f98Q&libraries=places,visualization"></script>
   <script src="script.js"></script>
-  <script
-    src="https://maps.googleapis.com/maps/api/js?key=AIzaSyDF7OxMlCDpAwBsMiyqI4-ALdkaI77f98Q&libraries=places&callback=initMap"
-    async defer></script>
+  <script>
+    window.onload = function() {
+      if (typeof initMap === 'function') initMap();
+    }
+  </script>
 </body>
 </html>
