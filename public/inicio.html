@@ -144,10 +144,18 @@
             <option value="pharmacy">Farmacia</option>
           </select>
         </label>
-  <button type="submit">Buscar lugares</button>
-  <!-- Aquí va el mensaje -->
-  <div id="mensajeLugar" style="margin-top:1em;color:#145a96;"></div>
-</form>
+        <div style="margin-top: 0.5em;">
+          <label for="afluenciaSelect"><b>Estimación de afluencia de clientes:</b></label>
+          <select id="afluenciaSelect" name="afluencia">
+            <option value="alta">Alta</option>
+            <option value="media">Media</option>
+            <option value="baja">Baja</option>
+          </select>
+        </div>
+        <button type="submit">Buscar lugares</button>
+        <!-- Aquí va el mensaje -->
+        <div id="mensajeLugar" style="margin-top:1em;color:#145a96;"></div>
+      </form>
     </div>
 
     <!-- Mapa a la derecha, ocupa todo -->

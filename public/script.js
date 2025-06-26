@@ -166,9 +166,14 @@ function mostrarUbicacionesFiltradas(ubicaciones) {
     return;
   }
 
-  mostrarHeatmap(ubicaciones);
+  // Lee la afluencia seleccionada
+  const afluencia = document.getElementById('afluenciaSelect')?.value || 'baja';
+  // Estima afluencia y filtra
+  const ubicacionesAfluencia = estimarAfluenciaPorZona(ubicaciones, afluencia);
+  mostrarHeatmapAfluencia(ubicacionesAfluencia, afluencia);
+
   // Centrar el mapa en el primer resultado
-  const primer = ubicaciones[0];
+  const primer = ubicacionesAfluencia[0] || ubicaciones[0];
   map.setCenter({ lat: primer.lat, lng: primer.lng });
 
   // Mostrar mensaje de buen lugar y resumen SIEMPRE
@@ -185,7 +190,7 @@ function mostrarUbicacionesFiltradas(ubicaciones) {
 
   // Mostrar resumen de lugares cercanos justo debajo del mensaje de buen lugar
   const radio = parseFloat(document.querySelector('input[name=\"radius\"]').value);
-  mostrarResumenLugaresEnInfo(primer.lat, primer.lng, radio);
+  mostrarResumenLugaresEnInfo(primer.lat, primer.lng, radio, afluencia, primer.score);
 }
 
 function clearHeatmap() {
@@ -247,5 +252,101 @@ function initMap() {
     const rubro = document.querySelector('select[name="type"]').value;
     const ubicacionesFiltradas = filtrarUbicacionesPorRadioYRubro(lat, lng, radio, rubro);
     mostrarUbicacionesFiltradas(ubicacionesFiltradas);
+  });
+}
+
+// Nueva función para estimar afluencia por zona
+function estimarAfluenciaPorZona(ubicaciones, afluencia) {
+  // Simulación: cuenta lugares cercanos y clasifica
+  // Puedes mejorar esto con datos reales si tienes
+  return ubicaciones.map(u => {
+    // Suma de lugares cercanos (puedes ajustar el rango)
+    let score = 0;
+    if (u.resumen && typeof u.resumen === 'object') {
+      score = Object.values(u.resumen).reduce((a, b) => a + b, 0);
+    } else {
+      // Si no hay resumen, usa un valor base
+      score = Math.floor(Math.random() * 100);
+    }
+    let nivel = 'baja';
+    if (score >= 60) nivel = 'alta';
+    else if (score >= 30) nivel = 'media';
+    return { ...u, afluencia: nivel, score };
+  }).filter(u => {
+    if (afluencia === 'alta') return u.afluencia === 'alta';
+    if (afluencia === 'media') return u.afluencia === 'media' || u.afluencia === 'alta';
+    return true; // baja: muestra todo
+  });
+}
+
+// Nueva función para mostrar heatmap según afluencia
+function mostrarHeatmapAfluencia(ubicaciones, afluencia) {
+  clearHeatmap();
+  if (!ubicaciones.length) return;
+  // Ajusta el gradiente según la afluencia
+  let gradient;
+  if (afluencia === 'alta') {
+    gradient = [
+      'rgba(255,255,0,0)',
+      'rgba(255,140,0,0.7)',
+      'rgba(255,0,0,1)'
+    ];
+  } else if (afluencia === 'media') {
+    gradient = [
+      'rgba(0,255,255,0)',
+      'rgba(0,255,0,0.7)',
+      'rgba(255,255,0,1)'
+    ];
+  } else {
+    gradient = [
+      'rgba(0,0,255,0)',
+      'rgba(0,255,255,0.7)',
+      'rgba(0,255,0,1)'
+    ];
+  }
+  const heatmapData = ubicaciones.map(u => {
+    // Peso según score
+    return { location: new google.maps.LatLng(u.lat, u.lng), weight: u.score || 1 };
+  });
+  heatmapLayer = new google.maps.visualization.HeatmapLayer({
+    data: heatmapData,
+    radius: 30,
+    gradient: gradient,
+    map: map
+  });
+}
+
+// Modifica mostrarResumenLugaresEnInfo para mostrar cantidad de clientes
+function mostrarResumenLugaresEnInfo(lat, lng, radio, afluencia, score) {
+  const contenedorInfo = document.getElementById('infoLugar');
+  let mensajeZona = document.getElementById('mensajeLugarZona');
+  let resumenDiv = document.getElementById('resumenLugaresZona');
+  if (!resumenDiv) {
+    resumenDiv = document.createElement('div');
+    resumenDiv.id = 'resumenLugaresZona';
+    resumenDiv.style.margin = '0.5em 0 0 0';
+    resumenDiv.style.color = '#145a96';
+    resumenDiv.style.fontWeight = '500';
+    resumenDiv.textContent = 'Buscando lugares cercanos...';
+    if (mensajeZona && mensajeZona.parentNode) {
+      mensajeZona.parentNode.insertBefore(resumenDiv, mensajeZona.nextSibling);
+    } else {
+      contenedorInfo.appendChild(resumenDiv);
+    }
+  } else {
+    resumenDiv.textContent = 'Buscando lugares cercanos...';
+  }
+  buscarLugaresCercanos(lat, lng, radio, function(resumen) {
+    let total = Object.values(resumen).reduce((a, b) => a + b, 0);
+    let nivel = 'Baja';
+    if (total >= 60) nivel = 'Alta';
+    else if (total >= 30) nivel = 'Media';
+    let html = `<b>Resumen de la zona (${(radio/1000).toFixed(1)} km):</b> `;
+    html += Object.entries(resumen).map(([k, v]) => `${v} ${k}`).join(', ');
+    html += `<br><b>Estimación de afluencia de clientes:</b> ${nivel} (${total} clientes potenciales)`;
+    if (afluencia) {
+      html += `<br><b>Filtro aplicado:</b> ${afluencia.charAt(0).toUpperCase() + afluencia.slice(1)}`;
+    }
+    resumenDiv.innerHTML = html;
   });
 }
