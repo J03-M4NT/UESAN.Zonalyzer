@@ -6,7 +6,7 @@ Proyecto de busqueda de puntos comerciales alrededor de Lima Metropolitana, usan
 
 - [Descripción](#descripción)
 - [Instalación](#instalación)
-- [Autor](#autor)
+- [Autores](#autores)
 
 ## Descripción
 
